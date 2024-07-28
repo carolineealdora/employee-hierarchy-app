@@ -22,23 +22,19 @@ func main() {
 		log.Println(err)
 	}
 
-	log.Print(executive, employeeRelations, "relation map")
-
 	empTree, err := repo.GenerateTree(executive, employeeRelations)
 
 	if err != nil {
 		log.Println(err)
 	}
 
-	for _, v := range empTree {
-		a := *v
-		log.Print(a.Employee, "yesy")
-		log.Print(len(a.DirectReports))
-	}
+	// for _, v := range empTree {
+	// 	a := *v
+	// 	log.Print(a.Employee, "yesy")
+	// 	log.Print(len(a.DirectReports))
+	// }
+	log.Println(empTree)
 
 	j, _ := json.Marshal(empTree)
 	log.Println(string(j), "result")
-
-	log.Print(empTree, "empTree")
-	log.Println(populate, "populate")
 }

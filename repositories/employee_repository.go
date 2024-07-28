@@ -61,10 +61,9 @@ func (r *employeeRepository) PopulateEmployeeArrayData(dataSetType int) ([]*enti
 
 func (r *employeeRepository) FindEmployeeByIdOnArrayData(id int, employees []*entities.Employee) (*entities.Employee, error) {
 	const methodName = "employeeRepository.FindEmployeeByIdOnArrayData"
-	log.Println(employees, id, "emp, id")
+	
 	for _, d := range employees {
 		if id == d.Id {
-			log.Println(d, "d")
 			return d, nil
 		}
 	}
@@ -88,7 +87,6 @@ func (r *employeeRepository) GenerateRelationMap(employees []*entities.Employee)
 			continue
 		}
 
-		log.Println(e, "data e")
 		manager, err := r.FindEmployeeByIdOnArrayData(e.ManagerId, employees)
 		if err != nil {
 			return nil, nil, err
@@ -135,39 +133,42 @@ func (r *employeeRepository) GenerateRelationMap(employees []*entities.Employee)
 			methodName,
 		)
 	}
+
+	// dup emp with same manager
 	
 	return executive[0], relations, nil
 }
 
-func(r *employeeRepository) GenerateTree(root *entities.Employee, employeeRelations map[*entities.Employee][]*entities.Employee) ([]*entities.EmployeeNode, error){
-
-	log.Println(root, employeeRelations, "see")
+func(r *employeeRepository) GenerateTree(root *entities.Employee, employeeRelations map[*entities.Employee][]*entities.Employee) (entities.EmployeeNode, error){
+	const methodName = "employeeRepository.GenerateTree"
+	
 	empTree, err := r.BuildNode(root, employeeRelations)
 
 	if err!=nil{
 		log.Print("failed")
 	}
 
-	return empTree, nil
+	return *empTree, nil
 }
 
-func (r *employeeRepository) BuildNode(parent *entities.Employee, employeeRelations map[*entities.Employee][]*entities.Employee) ([]*entities.EmployeeNode, error) {
-	
-	var employeeTree = []*entities.EmployeeNode{}
+func (r *employeeRepository) BuildNode(parent *entities.Employee, employeeRelations map[*entities.Employee][]*entities.Employee) *entities.EmployeeNode {
+
 	var node = entities.EmployeeNode{}
+	
 	for _, c := range employeeRelations[parent] {
-		log.Println(c, parent, node, "siapa aja")
 		node.Employee = parent
 		if c != nil {
-			if relations, ok := employeeRelations[c]; ok {
-				log.Println("masuk sii?", c, relations)
-				r.BuildNode(c, employeeRelations)
-				node.DirectReports = append(node.DirectReports, c)
+			var childNode = entities.EmployeeNode{
+				Employee: c,
 			}
-			
-		}
-		employeeTree = append(employeeTree, &node)
-	}
 
-	return employeeTree, nil
+			if _, ok := employeeRelations[c]; ok {
+				childNode := r.BuildNode(c, employeeRelations)
+
+				node.DirectReports = append(node.DirectReports, childNode)
+			}
+			node.DirectReports = append(node.DirectReports, &childNode)
+		}
+	}
+	return &node
 }
