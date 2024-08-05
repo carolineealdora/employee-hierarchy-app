@@ -93,6 +93,14 @@ func EmployeeNotFoundError(empName string) *CustomError {
 	}
 }
 
+func FailedOnGeneratingTreeError() *CustomError {
+	return &CustomError{
+		Code:    http.StatusBadRequest,
+		Name:    "ErrEmployeeNotFound",
+		Message: "Failed on generating tree. Please try again.",
+	}
+}
+
 
 func RetrieveDataError(dataName string) *CustomError {
 	return &CustomError{
