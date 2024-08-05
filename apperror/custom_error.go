@@ -71,6 +71,29 @@ func NoHierarchyEmployeeError(empName []string) *CustomError {
 	}
 }
 
+func MultipleManagerEmployeeError(empName []string) *CustomError {
+	return &CustomError{
+		Code:    http.StatusInternalServerError,
+		Name:    "ErrMultipleManager",
+		Message: "Unable to process employeee hierarchy. Employee(s) has multiple managers",
+		Details: gin.H{
+			"data": empName,
+		},
+	}
+}
+
+func EmployeeNotFoundError(empName string) *CustomError {
+	return &CustomError{
+		Code:    http.StatusBadRequest,
+		Name:    "ErrEmployeeNotFound",
+		Message: "Employee with given name not found",
+		Details: gin.H{
+			"data": empName,
+		},
+	}
+}
+
+
 func RetrieveDataError(dataName string) *CustomError {
 	return &CustomError{
 		Code:    http.StatusInternalServerError,

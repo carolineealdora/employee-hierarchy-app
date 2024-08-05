@@ -1,14 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 
 	"github.com/carolineealdora/employee-hierarchy-app/repositories"
+	"github.com/carolineealdora/employee-hierarchy-app/services"
 )
 
 func main() {
 	var repo = repositories.NewEmployeeRepository()
+	var serv = services.NewEmployeeService(repo)
 
 	populate, err := repo.PopulateEmployeeArrayData(1)
 
@@ -16,25 +17,27 @@ func main() {
 		log.Println(err)
 	}
 
-	executive, employeeRelations, err := repo.GenerateRelationMap(populate)
+	// executive, employeeRelations, err := serv.GenerateRelationMap(populate)
 
 	if err != nil {
 		log.Println(err)
 	}
 
-	empTree, err := repo.GenerateTree(executive, employeeRelations)
+	empTree, err := serv.GenerateTree(populate)
 
 	if err != nil {
 		log.Println(err)
 	}
 
-	// for _, v := range empTree {
-	// 	a := *v
-	// 	log.Print(a.Employee, "yesy")
-	// 	log.Print(len(a.DirectReports))
-	// }
-	log.Println(empTree)
+	res, err := serv.SearchEmployee("eveleen", empTree)
 
-	j, _ := json.Marshal(empTree)
-	log.Println(string(j), "result")
+	if err != nil {
+		log.Println(err)
+	}
+
+	log.Println(empTree, "tree")
+	log.Println(res, "searched")
+
+	// j, _ := json.Marshal(empTree)
+	// log.Println(string(j), "result")
 }
