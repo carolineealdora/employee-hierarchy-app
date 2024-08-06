@@ -14,6 +14,6 @@ const (
 	ResponseMsgErrorInternalServer = "our server encounter error. please try again"
 
 	ResponseMsgDataRetrieved = "successfully retrieved data"
-	ResponseMsgDataCreated = "sucessfully created data"
+	ResponseMsgDataCreated = "successfully created data"
 	ResponseMsgDataUpdated = "sucessfully updated data"
 )

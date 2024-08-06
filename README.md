@@ -9,7 +9,7 @@ Project employee hierarchy API is a project created by Caroline. In this project
 Please do refer to the instructions below to run this project
 
 ```shell
-1. Create new file '.env' according to .env.example provided
+1. Create new file '.env' according to '.env.example' in 'build' folder provided
 2. Fill in the required '.env' configuration
 4. On your terminal run command 'go run .' to run the project
 ```

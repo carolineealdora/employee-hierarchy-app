@@ -3,13 +3,12 @@ package services
 import (
 	"context"
 
-	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
-	"github.com/carolineealdora/employee-hierarchy-app/internal/repositories"
-	"github.com/carolineealdora/employee-hierarchy-app/internal/apperror"
-	"github.com/carolineealdora/employee-hierarchy-app/internal/entities"
-	"github.com/carolineealdora/employee-hierarchy-app/internal/utils"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
-	
+	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
+	"github.com/carolineealdora/employee-hierarchy-app/internal/entities"
+	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
+	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/utils"
+	"github.com/carolineealdora/employee-hierarchy-app/internal/repositories"
 )
 
 type EmployeeService interface {
@@ -35,14 +34,13 @@ func (s *employeeService) GenerateEmployeeData(dataSetType int) ([]*entities.Emp
 
 	if !ok {
 		return nil, apperror.NewError(
-			apperror.RetrieveDataError("setDataEmployee"),
+			apperror.RetrieveDataError("data_set_type"),
 			constants.EmployeeServFile,
 			methodName,
 		)
 	}
 
 	setData, err := s.employeeRepository.PopulateEmployeeArrayData(setDataPath)
-
 	if err != nil {
 		return nil, err
 	}

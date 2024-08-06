@@ -5,7 +5,8 @@ import (
 	"os"
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/entities"
-	"github.com/carolineealdora/employee-hierarchy-app/internal/apperror"
+	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
+
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 )
 
@@ -33,6 +34,7 @@ func (r *employeeRepository) PopulateEmployeeArrayData(filePath string) ([]*enti
 			methodName,
 		)
 	}
+
 	var employees []*entities.Employee
 	if err := json.Unmarshal(employeeDataJson, &employees); err != nil {
 		return nil, apperror.NewError(
@@ -41,7 +43,7 @@ func (r *employeeRepository) PopulateEmployeeArrayData(filePath string) ([]*enti
 			methodName,
 		)
 	}
-
+	
 	return employees, nil
 }
 
@@ -62,9 +64,9 @@ func (r *employeeRepository) FindEmployeeByIdOnArrayData(id int, employees []*en
 
 func (r *employeeRepository) GetDataSetEmployee() map[int]string {
 	dataSetEmployee := map[int]string{
-		1: "./json_data/correct-employees.json",
-		2: "./json_data/faulty-employees-1.json",
-		3: "./json_data/faulty-employees-2.json",
+		1: "./internal/json_data/correct-employees.json",
+		2: "./internal/json_data/faulty-employees-1.json",
+		3: "./internal/json_data/faulty-employees-2.json",
 	}
 
 	return dataSetEmployee

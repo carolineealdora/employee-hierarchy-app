@@ -33,17 +33,6 @@ func NotFoundError(field string, id int64) *CustomError {
 	}
 }
 
-func DataNotFoundError(id int) *CustomError {
-	return &CustomError{
-		Code:    http.StatusBadRequest,
-		Name:    "ErrDataNotAvailable",
-		Message: "Data not found",
-		Details: gin.H{
-			"data_id": id,
-		},
-	}
-}
-
 func NoExecutiveFoundError() *CustomError {
 	return &CustomError{
 		Code:    http.StatusBadRequest,
@@ -66,7 +55,7 @@ func NoHierarchyEmployeeError(empName []string) *CustomError {
 		Name:    "ErrNoHierarchyEmployee",
 		Message: "Unable to process employeee hierarchy. Employee(s) does not have any hierarchy",
 		Details: gin.H{
-			"data": empName,
+			"list_employee_name": empName,
 		},
 	}
 }
@@ -77,7 +66,7 @@ func MultipleManagerEmployeeError(empName []string) *CustomError {
 		Name:    "ErrMultipleManager",
 		Message: "Unable to process employeee hierarchy. Employee(s) has multiple managers",
 		Details: gin.H{
-			"data": empName,
+			"employee_name": empName,
 		},
 	}
 }
@@ -88,7 +77,7 @@ func EmployeeNotFoundError(empName string) *CustomError {
 		Name:    "ErrEmployeeNotFound",
 		Message: "Employee with given name not found",
 		Details: gin.H{
-			"data": empName,
+			"employee_name": empName,
 		},
 	}
 }
@@ -106,9 +95,9 @@ func RetrieveDataError(dataName string) *CustomError {
 	return &CustomError{
 		Code:    http.StatusInternalServerError,
 		Name:    "ErrFailedRetrieveData",
-		Message: "failed on data retrieval",
+		Message: "failed while retrieving data",
 		Details: gin.H{
-			"data": dataName,
+			"employee_name": dataName,
 		},
 	}
 }
