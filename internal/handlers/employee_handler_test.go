@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,8 +11,6 @@ import (
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/utils"
-
-	// "github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
 	"github.com/carolineealdora/employee-hierarchy-app/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -72,5 +71,26 @@ func TestGetEmployee(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 		assert.Equal(t, expectedResString, w.Body.String())
+	})
+
+	t.Run("should return error response when service return error", func(t *testing.T) {
+		req := dtos.SearchEmployeeReq{
+			EmployeeName: "kacie",
+			DataSetType:  4,
+		}
+		reqJson, _ := json.Marshal(req)
+
+		customErr := apperror.RetrieveDataError("data_set_type")
+
+		gin.SetMode(gin.TestMode)
+		r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
+		c.Request = r
+
+		mockService.On("GetEmployeeByName", c, req).Return(nil, errors.New(customErr.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.GenerateResponse(customErr.Message, customErr.Details))
+		dep.GetEmployee(c)
+
+		mockService.AssertExpectations(t)
+		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	})
 }

@@ -96,9 +96,7 @@ func RetrieveDataError(dataName string) *CustomError {
 		Code:    http.StatusInternalServerError,
 		Name:    "ErrFailedRetrieveData",
 		Message: "failed while retrieving data",
-		Details: gin.H{
-			"employee_name": dataName,
-		},
+		Details: dataName,
 	}
 }
 
