@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
@@ -15,15 +14,11 @@ func ErrorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 		listErrors := c.Errors
-		log.Println(listErrors, "listss")
 		if len(listErrors) > 0 {
-			// e := listErrors.Last().Err
-			e := listErrors[0].Err
-			log.Println(e, "nas")
+			e := listErrors.Last().Err
 			switch e.(type) {
 			case validator.ValidationErrors:
 				var ve validator.ValidationErrors
-				log.Println(listErrors, "lll")
 				if errors.As(c.Errors.Last(), &ve) {
 					listErrors := make([]apperror.ValidatorError, len(ve))
 					for i, val := range ve {

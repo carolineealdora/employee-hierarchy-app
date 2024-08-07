@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 
@@ -11,9 +12,9 @@ import (
 )
 
 type EmployeeRepository interface {
-	GetDataSetEmployee() map[int]string
-	PopulateEmployeeArrayData(filePath string) ([]*entities.Employee, error)
-	FindEmployeeByIdOnArrayData(id int, employees []*entities.Employee) (*entities.Employee, error)
+	GetDataSetEmployee(ctx context.Context) map[int]string 
+	PopulateEmployeeArrayData(ctx context.Context, filePath string) ([]*entities.Employee, error) 
+	FindEmployeeByIdOnArrayData(ctx context.Context, id int, employees []*entities.Employee) (*entities.Employee, error) 
 }
 
 type employeeRepository struct {
@@ -23,7 +24,7 @@ func NewEmployeeRepository() *employeeRepository {
 	return &employeeRepository{}
 }
 
-func (r *employeeRepository) PopulateEmployeeArrayData(filePath string) ([]*entities.Employee, error) {
+func (r *employeeRepository) PopulateEmployeeArrayData(ctx context.Context, filePath string) ([]*entities.Employee, error) {
 	const methodName = "employeeRepository.PopulateEmployeeData"
 
 	employeeDataJson, err := os.ReadFile(filePath)
@@ -47,7 +48,7 @@ func (r *employeeRepository) PopulateEmployeeArrayData(filePath string) ([]*enti
 	return employees, nil
 }
 
-func (r *employeeRepository) FindEmployeeByIdOnArrayData(id int, employees []*entities.Employee) (*entities.Employee, error) {
+func (r *employeeRepository) FindEmployeeByIdOnArrayData(ctx context.Context, id int, employees []*entities.Employee) (*entities.Employee, error) {
 	const methodName = "employeeRepository.FindEmployeeByIdOnArrayData"
 
 	for _, d := range employees {
@@ -62,11 +63,15 @@ func (r *employeeRepository) FindEmployeeByIdOnArrayData(id int, employees []*en
 	)
 }
 
-func (r *employeeRepository) GetDataSetEmployee() map[int]string {
+func (r *employeeRepository) GetDataSetEmployee(ctx context.Context) map[int]string {
 	dataSetEmployee := map[int]string{
 		1: "./internal/json_data/correct-employees.json",
 		2: "./internal/json_data/faulty-employees-1.json",
 		3: "./internal/json_data/faulty-employees-2.json",
+		4: "./internal/json_data/faulty-employees-empty-data-set.json",
+		5: "./internal/json_data/faulty-employees-looped-relations.json",
+		6: "./internal/json_data/faulty-employee-their-own-manager.json",
+		7: "./internal/json_data/faulty-employees-no-executive.json",
 	}
 
 	return dataSetEmployee

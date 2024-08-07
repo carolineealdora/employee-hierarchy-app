@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	entities "github.com/carolineealdora/employee-hierarchy-app/internal/entities"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -12,13 +14,13 @@ type EmployeeRepository struct {
 	mock.Mock
 }
 
-// FindEmployeeByIdOnArrayData provides a mock function with given fields: id, employees
-func (_m *EmployeeRepository) FindEmployeeByIdOnArrayData(id int, employees []*entities.Employee) (*entities.Employee, error) {
-	ret := _m.Called(id, employees)
+// FindEmployeeByIdOnArrayData provides a mock function with given fields: ctx, id, employees
+func (_m *EmployeeRepository) FindEmployeeByIdOnArrayData(ctx context.Context, id int, employees []*entities.Employee) (*entities.Employee, error) {
+	ret := _m.Called(ctx, id, employees)
 
 	var r0 *entities.Employee
-	if rf, ok := ret.Get(0).(func(int, []*entities.Employee) *entities.Employee); ok {
-		r0 = rf(id, employees)
+	if rf, ok := ret.Get(0).(func(context.Context, int, []*entities.Employee) *entities.Employee); ok {
+		r0 = rf(ctx, id, employees)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*entities.Employee)
@@ -26,8 +28,8 @@ func (_m *EmployeeRepository) FindEmployeeByIdOnArrayData(id int, employees []*e
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int, []*entities.Employee) error); ok {
-		r1 = rf(id, employees)
+	if rf, ok := ret.Get(1).(func(context.Context, int, []*entities.Employee) error); ok {
+		r1 = rf(ctx, id, employees)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -35,13 +37,13 @@ func (_m *EmployeeRepository) FindEmployeeByIdOnArrayData(id int, employees []*e
 	return r0, r1
 }
 
-// GetDataSetEmployee provides a mock function with given fields:
-func (_m *EmployeeRepository) GetDataSetEmployee() map[int]string {
-	ret := _m.Called()
+// GetDataSetEmployee provides a mock function with given fields: ctx
+func (_m *EmployeeRepository) GetDataSetEmployee(ctx context.Context) map[int]string {
+	ret := _m.Called(ctx)
 
 	var r0 map[int]string
-	if rf, ok := ret.Get(0).(func() map[int]string); ok {
-		r0 = rf()
+	if rf, ok := ret.Get(0).(func(context.Context) map[int]string); ok {
+		r0 = rf(ctx)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[int]string)
@@ -51,13 +53,13 @@ func (_m *EmployeeRepository) GetDataSetEmployee() map[int]string {
 	return r0
 }
 
-// PopulateEmployeeArrayData provides a mock function with given fields: filePath
-func (_m *EmployeeRepository) PopulateEmployeeArrayData(filePath string) ([]*entities.Employee, error) {
-	ret := _m.Called(filePath)
+// PopulateEmployeeArrayData provides a mock function with given fields: ctx, filePath
+func (_m *EmployeeRepository) PopulateEmployeeArrayData(ctx context.Context, filePath string) ([]*entities.Employee, error) {
+	ret := _m.Called(ctx, filePath)
 
 	var r0 []*entities.Employee
-	if rf, ok := ret.Get(0).(func(string) []*entities.Employee); ok {
-		r0 = rf(filePath)
+	if rf, ok := ret.Get(0).(func(context.Context, string) []*entities.Employee); ok {
+		r0 = rf(ctx, filePath)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*entities.Employee)
@@ -65,8 +67,8 @@ func (_m *EmployeeRepository) PopulateEmployeeArrayData(filePath string) ([]*ent
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(filePath)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, filePath)
 	} else {
 		r1 = ret.Error(1)
 	}

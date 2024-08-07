@@ -82,6 +82,25 @@ func EmployeeNotFoundError(empName string) *CustomError {
 	}
 }
 
+func SelfManagerError(empName string) *CustomError {
+	return &CustomError{
+		Code:    http.StatusBadRequest,
+		Name:    "ErrSelfManager",
+		Message: "Failed on generating tree. Employee is their own manager",
+		Details: gin.H{
+			"employee_name": empName,
+		},
+	}
+}
+
+func EmptyDataSetError() *CustomError {
+	return &CustomError{
+		Code:    http.StatusBadRequest,
+		Name:    "ErrEmptyDataSet",
+		Message: "Failed on generating tree. Data set is empty",
+	}
+}
+
 func FailedOnGeneratingTreeError() *CustomError {
 	return &CustomError{
 		Code:    http.StatusBadRequest,
@@ -89,7 +108,6 @@ func FailedOnGeneratingTreeError() *CustomError {
 		Message: "Failed on generating tree. Please try again.",
 	}
 }
-
 
 func RetrieveDataError(dataName string) *CustomError {
 	return &CustomError{

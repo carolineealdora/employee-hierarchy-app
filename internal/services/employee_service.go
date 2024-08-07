@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
@@ -25,13 +26,13 @@ func NewEmployeeService(er repositories.EmployeeRepository) *employeeService {
 	}
 }
 
-func (s *employeeService) GenerateEmployeeData(dataSetType int) ([]*entities.Employee, error) {
+func (s *employeeService) GenerateEmployeeData(ctx context.Context, dataSetType int) ([]*entities.Employee, error) {
 	const methodName = "employeeService.GenerateEmployeeData"
 
-	dataSet := s.employeeRepository.GetDataSetEmployee()
+	dataSet := s.employeeRepository.GetDataSetEmployee(ctx)
 
 	setDataPath, ok := dataSet[dataSetType]
-
+	log.Println(ok, "setDataPath", setDataPath)
 	if !ok {
 		return nil, apperror.NewError(
 			apperror.RetrieveDataError("data_set_type"),
@@ -40,15 +41,15 @@ func (s *employeeService) GenerateEmployeeData(dataSetType int) ([]*entities.Emp
 		)
 	}
 
-	setData, err := s.employeeRepository.PopulateEmployeeArrayData(setDataPath)
+	setData, err := s.employeeRepository.PopulateEmployeeArrayData(ctx, setDataPath)
 	if err != nil {
 		return nil, err
 	}
-
+	log.Println("setData", setData)
 	return setData, nil
 }
 
-func (s *employeeService) GenerateRelationMap(employees []*entities.Employee) (*entities.Employee, map[*entities.Employee][]*entities.Employee, error) {
+func (s *employeeService) GenerateRelationMap(ctx context.Context, employees []*entities.Employee) (*entities.Employee, map[*entities.Employee][]*entities.Employee, error) {
 	const methodName = "employeeService.GenerateRelationMap"
 	relations := make(map[*entities.Employee][]*entities.Employee)
 	empWithNoManager := []*entities.Employee{}
@@ -71,7 +72,15 @@ func (s *employeeService) GenerateRelationMap(employees []*entities.Employee) (*
 			continue
 		}
 
-		manager, err := s.employeeRepository.FindEmployeeByIdOnArrayData(e.ManagerId, employees)
+		if e.Id == e.ManagerId{
+			return nil, nil, apperror.NewError(
+				apperror.SelfManagerError(e.Name),
+				constants.EmployeeServFile,
+				methodName,
+			)
+		}
+
+		manager, err := s.employeeRepository.FindEmployeeByIdOnArrayData(ctx, e.ManagerId, employees)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -80,7 +89,7 @@ func (s *employeeService) GenerateRelationMap(employees []*entities.Employee) (*
 		relations[parent] = append(relations[parent], child)
 	}
 
-	executive, err := s.FindExecutive(empWithNoManager, relations)
+	executive, err := s.FindExecutive(ctx, empWithNoManager, relations)
 
 	if err != nil {
 		return nil, nil, err
@@ -89,7 +98,7 @@ func (s *employeeService) GenerateRelationMap(employees []*entities.Employee) (*
 	return executive, relations, nil
 }
 
-func (s *employeeService) FindExecutive(empWithNoManager []*entities.Employee, relations map[*entities.Employee][]*entities.Employee) (*entities.Employee, error) {
+func (s *employeeService) FindExecutive(ctx context.Context, empWithNoManager []*entities.Employee, relations map[*entities.Employee][]*entities.Employee) (*entities.Employee, error) {
 	const methodName = "employeeService.FindExecutive"
 	var empWithNoHierarchy []string
 	var executive *entities.Employee
@@ -135,7 +144,7 @@ func (s *employeeService) FindExecutive(empWithNoManager []*entities.Employee, r
 	return executive, nil
 }
 
-func (s *employeeService) BuildNode(parent *entities.Employee, employeeRelations map[*entities.Employee][]*entities.Employee) *entities.EmployeeNode {
+func (s *employeeService) BuildNode(ctx context.Context, parent *entities.Employee, employeeRelations map[*entities.Employee][]*entities.Employee) *entities.EmployeeNode {
 
 	var node = entities.EmployeeNode{}
 	node.Employee = parent
@@ -154,7 +163,7 @@ func (s *employeeService) BuildNode(parent *entities.Employee, employeeRelations
 		}
 
 		if _, ok := employeeRelations[c]; ok {
-			childNode := s.BuildNode(c, employeeRelations)
+			childNode := s.BuildNode(ctx, c, employeeRelations)
 			if childNode != nil {
 				node.DirectReports = append(node.DirectReports, childNode)
 			}
@@ -165,16 +174,16 @@ func (s *employeeService) BuildNode(parent *entities.Employee, employeeRelations
 	return &node
 }
 
-func (s *employeeService) GenerateTree(empData []*entities.Employee) (*entities.EmployeeNode, error) {
+func (s *employeeService) GenerateTree(ctx context.Context, empData []*entities.Employee) (*entities.EmployeeNode, error) {
 	const methodName = "employeeService.GenerateTree"
 
-	root, employeeRelations, err := s.GenerateRelationMap(empData)
+	root, employeeRelations, err := s.GenerateRelationMap(ctx, empData)
 
 	if err != nil {
 		return nil, err
 	}
 
-	empTree := s.BuildNode(root, employeeRelations)
+	empTree := s.BuildNode(ctx, root, employeeRelations)
 
 	if empTree == nil {
 		return nil, apperror.NewError(
@@ -187,12 +196,12 @@ func (s *employeeService) GenerateTree(empData []*entities.Employee) (*entities.
 	return empTree, nil
 }
 
-func (s *employeeService) SearchEmployee(empName string, empTree *entities.EmployeeNode) (*dtos.FindEmployee, error) {
+func (s *employeeService) SearchEmployee(ctx context.Context, empName string, empTree *entities.EmployeeNode) (*dtos.FindEmployee, error) {
 	const methodName = "employeeService.SearchEmployee"
 
 	var listManagers []string
 
-	foundEmp := s.findEmployeeByNameOnTree(empName, empTree)
+	foundEmp := s.findEmployeeByNameOnTree(ctx, empName, empTree)
 
 	if foundEmp == nil {
 		return nil, apperror.NewError(
@@ -202,9 +211,9 @@ func (s *employeeService) SearchEmployee(empName string, empTree *entities.Emplo
 		)
 	}
 
-	CountIndirectReports := s.CountIndirectReports(foundEmp, 0)
+	CountIndirectReports := s.CountIndirectReports(ctx, foundEmp, 0)
 
-	listManagers = s.SearchForManagers(empTree, listManagers, foundEmp)
+	listManagers = s.SearchForManagers(ctx, empTree, listManagers, foundEmp)
 
 	result := &dtos.FindEmployee{
 		EmployeeName:         empName,
@@ -216,7 +225,7 @@ func (s *employeeService) SearchEmployee(empName string, empTree *entities.Emplo
 	return result, nil
 }
 
-func (s *employeeService) SearchForManagers(node *entities.EmployeeNode, listManagers []string, empToFind *entities.EmployeeNode) []string {
+func (s *employeeService) SearchForManagers(ctx context.Context, node *entities.EmployeeNode, listManagers []string, empToFind *entities.EmployeeNode) []string {
 	if node != nil {
 		if node.Employee.Name == empToFind.Employee.Name {
 			return listManagers
@@ -226,7 +235,7 @@ func (s *employeeService) SearchForManagers(node *entities.EmployeeNode, listMan
 
 		if len(node.DirectReports) > 0 {
 			for _, c := range node.DirectReports {
-				list := s.SearchForManagers(c, listManagers, empToFind)
+				list := s.SearchForManagers(ctx, c, listManagers, empToFind)
 				if list != nil {
 					return list
 				}
@@ -236,7 +245,7 @@ func (s *employeeService) SearchForManagers(node *entities.EmployeeNode, listMan
 	return nil
 }
 
-func (s *employeeService) findEmployeeByNameOnTree(empName string, node *entities.EmployeeNode) *entities.EmployeeNode {
+func (s *employeeService) findEmployeeByNameOnTree(ctx context.Context, empName string, node *entities.EmployeeNode) *entities.EmployeeNode {
 	if node != nil {
 		if node.Employee.Name == empName {
 			return node
@@ -244,7 +253,7 @@ func (s *employeeService) findEmployeeByNameOnTree(empName string, node *entitie
 
 		if len(node.DirectReports) > 0 {
 			for _, c := range node.DirectReports {
-				empFound := s.findEmployeeByNameOnTree(empName, c)
+				empFound := s.findEmployeeByNameOnTree(ctx, empName, c)
 				if empFound != nil {
 					return empFound
 				}
@@ -254,12 +263,12 @@ func (s *employeeService) findEmployeeByNameOnTree(empName string, node *entitie
 	return nil
 }
 
-func (s *employeeService) CountIndirectReports(parentNode *entities.EmployeeNode, count int) int {
+func (s *employeeService) CountIndirectReports(ctx context.Context, parentNode *entities.EmployeeNode, count int) int {
 	if parentNode != nil {
 		if len(parentNode.DirectReports) > 0 {
 			for _, c := range parentNode.DirectReports {
 				count += len(c.DirectReports)
-				s.CountIndirectReports(c, count)
+				s.CountIndirectReports(ctx, c, count)
 			}
 		}
 	}
@@ -267,19 +276,29 @@ func (s *employeeService) CountIndirectReports(parentNode *entities.EmployeeNode
 }
 
 func (s *employeeService) GetEmployeeByName(ctx context.Context, reqData dtos.SearchEmployeeReq) (*dtos.FindEmployee, error) {
-	dataSet, err := s.GenerateEmployeeData(reqData.DataSetType)
+	const methodName = "employeeService.GetEmployeeByName"
+	
+	dataSet, err := s.GenerateEmployeeData(ctx, reqData.DataSetType)
 
 	if err != nil {
 		return nil, err
 	}
 
-	empTree, err := s.GenerateTree(dataSet)
+	if len(dataSet) == 0 {
+		return nil, apperror.NewError(
+			apperror.EmptyDataSetError(),
+			constants.EmployeeRepoFile,
+			methodName,
+		)
+	}
+
+	empTree, err := s.GenerateTree(ctx, dataSet)
 
 	if err != nil {
 		return nil, err
 	}
 
-	emp, err := s.SearchEmployee(reqData.EmployeeName, empTree)
+	emp, err := s.SearchEmployee(ctx, reqData.EmployeeName, empTree)
 
 	if err != nil {
 		return nil, err

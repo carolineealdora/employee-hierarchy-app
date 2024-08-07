@@ -50,9 +50,9 @@ func TestGenerateEmployeeData(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
 		c.Request = r
 
-		mockRepo.On("GetDataSetEmployee").Return(nil, expResObj)
+		mockRepo.On("GetDataSetEmployee", c).Return(nil, expResObj)
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.GenerateResponse(customErr.Message, customErr.Details))
-		dep.GenerateEmployeeData(req.DataSetType)
+		dep.GenerateEmployeeData(c, req.DataSetType)
 
 		mockRepo.AssertExpectations(t)
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
@@ -81,16 +81,14 @@ func TestGenerateEmployeeData(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
 		c.Request = r
 
-		mockRepo.On("GetDataSetEmployee").Return(falseDataPath, nil)
+		mockRepo.On("GetDataSetEmployee", c).Return(falseDataPath, nil)
 		mockRepo.On("PopulateEmployeeArrayData", falseDataPath).Return(nil, expResObj)
-		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.GenerateResponse(customErr.Message, customErr.Details))
-		dep.GenerateEmployeeData(req.DataSetType)
+		dep.GenerateEmployeeData(c, req.DataSetType)
 
 		mockRepo.AssertExpectations(t)
 		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
 		assert.Equal(t, expectedResString, w.Body.String())
 	})
-
 }
 
 // t.Run("should return error response when form required binding criteria not fulfilled", func(t *testing.T) {
