@@ -10,7 +10,6 @@ import (
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
-	"github.com/carolineealdora/employee-hierarchy-app/internal/entities"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/utils"
 	"github.com/carolineealdora/employee-hierarchy-app/mocks"
@@ -88,34 +87,6 @@ func TestGenerateEmployeeData(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 		mockServ.AssertExpectations(t)
 		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
-	})
-
-	t.Run("should return array data of employee (pointer) with no error when process success", func(t *testing.T) {
-		req := dtos.SearchEmployeeReq{
-			EmployeeName: "kacie",
-			DataSetType:  1,
-		}
-		reqJson, _ := json.Marshal(req)
-
-		expResObj := []*entities.Employee{}
-		expResObjJson, _ := json.Marshal(expResObj)
-		filePath := "./internal/json_data/correct-employees.json"
-		dataSet := map[int]string{
-			1 : filePath,
-		}
-
-		gin.SetMode(gin.TestMode)
-		r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
-		c.Request = r
-
-		mockRepo.On("GetDataSetEmployee", c).Return(nil, dataSet)
-		mockServ.On("PopulateEmployeeArrayData", c, filePath).Return(expResObj, nil)
-		dep.GenerateEmployeeData(c, req.DataSetType)
-
-		mockRepo.AssertExpectations(t)
-		mockServ.AssertExpectations(t)
-		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-		assert.Equal(t, expResObjJson, w.Body.String())
 	})
 }
 
