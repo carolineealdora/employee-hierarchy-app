@@ -1,26 +1,41 @@
 package utils
 
-import "github.com/carolineealdora/employee-hierarchy-app/internal/entities"
+import (
 
-func CheckDuplicateOnEmployeeSlice(data []*entities.Employee) (bool, []string) {
+	"github.com/carolineealdora/employee-hierarchy-app/internal/entities"
+)
 
-	nameMapped := make(map[string]int)
-	var empMultipleEntry []string
+func CheckDuplicateOnEmployeeSlice(data []*entities.Employee) (bool, map[string][]string) {
+	nameCount := make(map[string]int)
+	empMultipleEntry := make(map[string][]string)
+
 	for _, d := range data {
-		_, ok := nameMapped[d.Name]
+		nameCount[d.Name]++
+	}
 
-		if !ok {
-			nameMapped[d.Name] = 1
-			continue
-		}
-
-		if ok {
-			empMultipleEntry = append(empMultipleEntry, d.Name)
+	for name, count := range nameCount {
+		if count > 1 {
+			for _, d := range data {
+				if d.Name == name {
+					manager := FindEmpNameByID(data, d.ManagerId)
+					empMultipleEntry[name] = append(empMultipleEntry[name], manager)
+				}
+			}
 		}
 	}
 
 	if len(empMultipleEntry) > 0 {
 		return true, empMultipleEntry
 	}
+
 	return false, nil
+}
+
+func FindEmpNameByID(data []*entities.Employee, id int) string {
+	for _, d := range data {
+		if d.Id == id {
+			return d.Name
+		}
+	}
+	return ""
 }

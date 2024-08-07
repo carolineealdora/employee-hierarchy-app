@@ -60,13 +60,25 @@ func NoHierarchyEmployeeError(empName []string) *CustomError {
 	}
 }
 
-func MultipleManagerEmployeeError(empName []string) *CustomError {
+// func MultipleManagerEmployeeError(empName []string) *CustomError {
+// 	return &CustomError{
+// 		Code:    http.StatusInternalServerError,
+// 		Name:    "ErrMultipleManager",
+// 		Message: "Unable to process employeee hierarchy. Employee(s) has multiple managers",
+// 		Details: gin.H{
+// 			"employee_name": empName,
+// 		},
+// 	}
+// }
+
+
+func MultipleManagerEmployeeError(emp map[string][]string) *CustomError {
 	return &CustomError{
 		Code:    http.StatusInternalServerError,
 		Name:    "ErrMultipleManager",
 		Message: "Unable to process employeee hierarchy. Employee(s) has multiple managers",
 		Details: gin.H{
-			"employee_name": empName,
+			"employee": emp,
 		},
 	}
 }

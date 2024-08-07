@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"log"
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
@@ -54,7 +55,7 @@ func (s *employeeService) GenerateRelationMap(ctx context.Context, employees []*
 	empWithNoManager := []*entities.Employee{}
 
 	isDuplicated, duplicatedData := utils.CheckDuplicateOnEmployeeSlice(employees)
-
+	log.Println(isDuplicated, "dup")
 	if isDuplicated {
 		return nil, nil, apperror.NewError(
 			apperror.MultipleManagerEmployeeError(duplicatedData),
