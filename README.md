@@ -19,6 +19,11 @@ https://documenter.getpostman.com/view/19177883/2sA3rzLDLE
 https://drive.google.com/file/d/1Phi5J0TQVTHLM94zNr3Tt4ey6zdYGZTm/view?usp=sharing
 ```
 
+2. Screenshot of unit tests coverage
+
+![Alt text](screenshot_coverage/Caroline Aldora_Screenshot Coverage.jpeg "Screenshot Unit Test Coverage")
+
+
 ## Installing / Getting started
 
 Please do refer to the instructions below to run this project before hitting the API
