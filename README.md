@@ -21,7 +21,7 @@ https://drive.google.com/file/d/1Phi5J0TQVTHLM94zNr3Tt4ey6zdYGZTm/view?usp=shari
 
 2. Screenshot of unit tests coverage
 
-![screenshot](screenshot_coverage/Caroline Aldora_Screenshot Coverage.jpeg)
+![screenshot](screenshot_coverage/Caroline Aldora_Screenshot_Coverage.jpeg)
 
 
 ## Installing / Getting started
