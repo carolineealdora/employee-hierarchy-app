@@ -34,15 +34,3 @@ Please do refer to the instructions below to run this project before hitting the
 4. On your terminal run command 'go run .' to run the project
 5. Open postman documentation `(https://documenter.getpostman.com/view/19177883/2sA3rzLDLE)` and try to send requests based on examples provided
 ```
-
-## How to Run Unit Tests
-
-Please do refer to the instructions below to run this project before hitting the API
-
-```shell
-1. Create new file '.env' according to '.env.example' in 'build' folder provided
-2. Fill in the required '.env' configuration
-4. On your terminal run command 'go run .' to run the project
-5. Open postman documentation `(https://documenter.getpostman.com/view/19177883/2sA3rzLDLE)` and try to send requests based on examples provided
-```
-
