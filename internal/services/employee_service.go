@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
@@ -32,7 +31,7 @@ func (s *employeeService) GenerateEmployeeData(ctx context.Context, dataSetType 
 	dataSet := s.employeeRepository.GetDataSetEmployee(ctx)
 
 	setDataPath, ok := dataSet[dataSetType]
-	log.Println(ok, "setDataPath", setDataPath)
+
 	if !ok {
 		return nil, apperror.NewError(
 			apperror.RetrieveDataError("data_set_type"),
@@ -45,7 +44,7 @@ func (s *employeeService) GenerateEmployeeData(ctx context.Context, dataSetType 
 	if err != nil {
 		return nil, err
 	}
-	log.Println("setData", setData)
+	
 	return setData, nil
 }
 
@@ -183,6 +182,16 @@ func (s *employeeService) GenerateTree(ctx context.Context, empData []*entities.
 		return nil, err
 	}
 
+	loopRelationDetected := s.CheckForLoopInRelation(employeeRelations)
+
+	if loopRelationDetected {
+		return nil, apperror.NewError(
+			apperror.LoopRelationError(),
+			constants.EmployeeServFile,
+			methodName,
+		)
+	}
+
 	empTree := s.BuildNode(ctx, root, employeeRelations)
 
 	if empTree == nil {
@@ -305,4 +314,19 @@ func (s *employeeService) GetEmployeeByName(ctx context.Context, reqData dtos.Se
 	}
 
 	return emp, nil
+}
+
+func (s *employeeService) CheckForLoopInRelation(relations map[*entities.Employee][]*entities.Employee) bool {
+	visited := make(map[*entities.Employee]bool)
+	visitedStacks := make(map[*entities.Employee]bool)
+
+	for employee := range relations {
+		if !visited[employee] {
+			if utils.LoopDetector(employee, relations, visited, visitedStacks) {
+				return true
+			}
+		}
+	}
+
+	return false
 }

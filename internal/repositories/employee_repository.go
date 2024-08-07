@@ -28,6 +28,7 @@ func (r *employeeRepository) PopulateEmployeeArrayData(ctx context.Context, file
 	const methodName = "employeeRepository.PopulateEmployeeData"
 
 	employeeDataJson, err := os.ReadFile(filePath)
+
 	if err != nil {
 		return nil, apperror.NewError(
 			apperror.InternalServerError(),
@@ -37,7 +38,9 @@ func (r *employeeRepository) PopulateEmployeeArrayData(ctx context.Context, file
 	}
 
 	var employees []*entities.Employee
-	if err := json.Unmarshal(employeeDataJson, &employees); err != nil {
+	err = json.Unmarshal(employeeDataJson, &employees)
+
+	if err != nil {
 		return nil, apperror.NewError(
 			apperror.InternalServerError(),
 			constants.EmployeeRepoFile,
@@ -71,7 +74,6 @@ func (r *employeeRepository) GetDataSetEmployee(ctx context.Context) map[int]str
 		4: "./internal/json_data/faulty-employees-empty-data-set.json",
 		5: "./internal/json_data/faulty-employees-looped-relations.json",
 		6: "./internal/json_data/faulty-employee-their-own-manager.json",
-		7: "./internal/json_data/faulty-employees-no-executive.json",
 	}
 
 	return dataSetEmployee

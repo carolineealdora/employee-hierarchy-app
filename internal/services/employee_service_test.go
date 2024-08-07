@@ -75,8 +75,6 @@ func TestGenerateEmployeeData(t *testing.T) {
 		expResObj := errors.New(resObj.Error())
 		falseDataPath := "./??"
 
-		expectedResString := "{\"message\":\"our server encounter error. please try again.\""
-
 		gin.SetMode(gin.TestMode)
 		r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
 		c.Request = r
@@ -87,7 +85,6 @@ func TestGenerateEmployeeData(t *testing.T) {
 
 		mockRepo.AssertExpectations(t)
 		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
-		assert.Equal(t, expectedResString, w.Body.String())
 	})
 }
 

@@ -101,6 +101,14 @@ func EmptyDataSetError() *CustomError {
 	}
 }
 
+func LoopRelationError() *CustomError {
+	return &CustomError{
+		Code:    http.StatusBadRequest,
+		Name:    "ErrLoopRelation",
+		Message: "Failed on generating tree. Loop detected in data relation",
+	}
+}
+
 func FailedOnGeneratingTreeError() *CustomError {
 	return &CustomError{
 		Code:    http.StatusBadRequest,
