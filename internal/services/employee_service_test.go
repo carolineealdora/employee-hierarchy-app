@@ -10,6 +10,7 @@ import (
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
+	"github.com/carolineealdora/employee-hierarchy-app/internal/entities"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/utils"
 	"github.com/carolineealdora/employee-hierarchy-app/mocks"
@@ -24,6 +25,7 @@ func TestNewEmployeeService(t *testing.T) {
 
 func TestGenerateEmployeeData(t *testing.T) {
 	mockRepo := mocks.NewEmployeeRepository(t)
+	mockServ := mocks.EmployeeService(*mockRepo)
 	dep := NewEmployeeService(mockRepo)
 
 	w := httptest.NewRecorder()
@@ -80,88 +82,76 @@ func TestGenerateEmployeeData(t *testing.T) {
 		c.Request = r
 
 		mockRepo.On("GetDataSetEmployee", c).Return(falseDataPath, nil)
-		mockRepo.On("PopulateEmployeeArrayData", falseDataPath).Return(nil, expResObj)
+		mockServ.On("PopulateEmployeeArrayData", c, falseDataPath).Return(nil, expResObj)
 		dep.GenerateEmployeeData(c, req.DataSetType)
 
 		mockRepo.AssertExpectations(t)
+		mockServ.AssertExpectations(t)
 		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+	})
+
+	t.Run("should return array data of employee (pointer) with no error when process success", func(t *testing.T) {
+		req := dtos.SearchEmployeeReq{
+			EmployeeName: "kacie",
+			DataSetType:  1,
+		}
+		reqJson, _ := json.Marshal(req)
+
+		expResObj := []*entities.Employee{}
+		expResObjJson, _ := json.Marshal(expResObj)
+		filePath := "./internal/json_data/correct-employees.json"
+		dataSet := map[int]string{
+			1 : filePath,
+		}
+
+		gin.SetMode(gin.TestMode)
+		r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
+		c.Request = r
+
+		mockRepo.On("GetDataSetEmployee", c).Return(nil, dataSet)
+		mockServ.On("PopulateEmployeeArrayData", c, filePath).Return(expResObj, nil)
+		dep.GenerateEmployeeData(c, req.DataSetType)
+
+		mockRepo.AssertExpectations(t)
+		mockServ.AssertExpectations(t)
+		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+		assert.Equal(t, expResObjJson, w.Body.String())
 	})
 }
 
-// t.Run("should return error response when form required binding criteria not fulfilled", func(t *testing.T) {
-// 	req := dtos.SearchEmployeeReq{
-// 		EmployeeName: "kacie",
-// 	}
-// 	reqJson, _ := json.Marshal(req)
-// 	expResObj := []apperror.ValidatorError{
-// 		*apperror.NewValidatorError("DataSetType", "field DataSetType is required"),
-// 	}
-// 	expectedResString := "{\"message\":\"invalid request. please fill all field(s) with the correct data\",\"data\":[{\"field\":\"DataSetType\",\"message\":\"field DataSetType is required\"}]}"
+func TestGetEmployeeByName(t *testing.T) {
+	mockRepo := mocks.NewEmployeeRepository(t)
+	mockServ := mocks.EmployeeService(*mockRepo)
+	dep := NewEmployeeService(mockRepo)
 
-// 	c.AbortWithStatusJSON(http.StatusBadRequest, utils.GenerateResponse(apperror.ErrValidator.Error(), expResObj))
-// 	r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
-// 	c.Request = r
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
 
-// 	dep.GetEmployee(c)
+	t.Run("should return error when generating data failed caused by invalid data set", func(t *testing.T) {
+		req := dtos.SearchEmployeeReq{
+			EmployeeName: "kacie",
+			DataSetType:  10,
+		}
+		reqJson, _ := json.Marshal(req)
 
-// 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-// 	assert.Equal(t, expectedResString, w.Body.String())
-// })
+		customErr := apperror.RetrieveDataError("data_set_type")
+		resObj := apperror.NewError(
+			customErr,
+			constants.EmployeeServFile,
+			"employeeService.GenerateEmployeeData",
+		)
+		expResObj := errors.New(resObj.Error())
 
-// t.Run("should return error response when data set given is false", func(t *testing.T) {
-// 	req := dtos.SearchEmployeeReq{
-// 		EmployeeName: "kacie",
-// 		DataSetType:  4,
-// 	}
-// 	reqJson, _ := json.Marshal(req)
+		gin.SetMode(gin.TestMode)
+		r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
+		c.Request = r
 
-// 	customErr := apperror.RetrieveDataError("data_set_type")
-// 	resObj := apperror.NewError(
-// 		customErr,
-// 		filename,
-// 		"employeeService.GenerateEmployeeData",
-// 	)
-// 	expResObj := errors.New(resObj.Error())
+		mockRepo.On("GetDataSetEmployee", c).Return(nil, expResObj)
+		mockServ.On("GenerateEmployeeData", c, req.DataSetType).Return(nil, expResObj)
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.GenerateResponse(customErr.Message, customErr.Details))
+		dep.GetEmployeeByName(c, req)
 
-// 	expectedResString := "{\"message\":\"failed while retrieving data\",\"data\":\"data_set_type\"}"
-
-// 	gin.SetMode(gin.TestMode)
-// 	r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
-// 	c.Request = r
-
-// 	mockService.On("GetEmployeeByName", c, req).Return(nil, expResObj)
-// 	c.AbortWithStatusJSON(http.StatusBadRequest, utils.GenerateResponse(customErr.Message, customErr.Details))
-// 	dep.GetEmployee(c)
-
-// 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-// 	assert.Equal(t, expectedResString, w.Body.String())
-// })
-
-// t.Run("should return error response when data employee duplicated", func(t *testing.T) {
-// 	req := dtos.SearchEmployeeReq{
-// 		EmployeeName: "kacie",
-// 		DataSetType:  3,
-// 	}
-// 	reqJson, _ := json.Marshal(req)
-
-// 	customErr := apperror.FailedOnGeneratingTreeError()
-// 	resObj := apperror.NewError(
-// 		customErr,
-// 		filename,
-// 		"employeeService.GenerateTree",
-// 	)
-// 	expResObj := errors.New(resObj.Error())
-
-// 	expectedResString := "{\"message\":\"Unable to process employeee hierarchy. Employee(s) has multiple managers\",\"data\":{\"employee_name\":[\"linton\"]}}"
-
-// 	gin.SetMode(gin.TestMode)
-// 	r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
-// 	c.Request = r
-
-// 	mockService.On("GetEmployeeByName", c, req).Return(nil, expResObj)
-// 	c.AbortWithStatusJSON(http.StatusBadRequest, utils.GenerateResponse(customErr.Message, customErr.Details))
-// 	dep.GetEmployee(c)
-
-// 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-// 	assert.Equal(t, expectedResString, w.Body.String())
-// })
+		mockRepo.AssertExpectations(t)
+		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+	})
+}
