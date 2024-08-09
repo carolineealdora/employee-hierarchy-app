@@ -7,9 +7,9 @@ func LoopDetector(employee *entities.Employee, relations map[*entities.Employee]
 		visited[employee] = true
 		visitedStacks[employee] = true
 
-		directReport, ok := relations[employee]
+		directReport, isEmpRelationExists := relations[employee]
 		for _, employee := range directReport{
-			if ok {
+			if isEmpRelationExists {
 				if !visited[employee] && LoopDetector(employee, relations, visited, visitedStacks) {
 					return true
 				}
@@ -20,8 +20,6 @@ func LoopDetector(employee *entities.Employee, relations map[*entities.Employee]
 		}
 	}
 
-	
-	// visitedStacks[employee] = false
 	delete(visitedStacks, employee)
 	return false
 }

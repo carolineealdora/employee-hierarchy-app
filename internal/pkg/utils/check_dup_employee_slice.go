@@ -5,19 +5,19 @@ import (
 	"github.com/carolineealdora/employee-hierarchy-app/internal/entities"
 )
 
-func CheckDuplicateOnEmployeeSlice(data []*entities.Employee) (bool, map[string][]string) {
+func CheckDuplicateOnEmployeeSlice(employees []*entities.Employee) (bool, map[string][]string) {
 	nameCount := make(map[string]int)
 	empMultipleEntry := make(map[string][]string)
 
-	for _, d := range data {
-		nameCount[d.Name]++
+	for _, emp := range employees {
+		nameCount[emp.Name]++
 	}
 
 	for name, count := range nameCount {
 		if count > 1 {
-			for _, d := range data {
-				if d.Name == name {
-					manager := FindEmpNameByID(data, d.ManagerId)
+			for _, emp := range employees {
+				if emp.Name == name {
+					manager := FindEmpNameByID(employees, emp.ManagerId)
 					empMultipleEntry[name] = append(empMultipleEntry[name], manager)
 				}
 			}
@@ -31,10 +31,10 @@ func CheckDuplicateOnEmployeeSlice(data []*entities.Employee) (bool, map[string]
 	return false, nil
 }
 
-func FindEmpNameByID(data []*entities.Employee, id int) string {
-	for _, d := range data {
-		if d.Id == id {
-			return d.Name
+func FindEmpNameByID(employees []*entities.Employee, id int) string {
+	for _, emp := range employees {
+		if emp.Id == id {
+			return emp.Name
 		}
 	}
 	return ""
