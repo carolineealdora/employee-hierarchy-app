@@ -30,9 +30,9 @@ func (s *employeeService) GenerateEmployeeData(ctx context.Context, dataSetType 
 
 	dataSet := s.employeeRepository.GetDataSetEmployee(ctx)
 
-	setDataPath, ok := dataSet[dataSetType]
+	dataSetPath, isDataSetExists := dataSet[dataSetType]
 
-	if !ok {
+	if !isDataSetExists {
 		return nil, apperror.NewError(
 			apperror.RetrieveDataError("data_set_type"),
 			constants.EmployeeServFile,
@@ -40,7 +40,7 @@ func (s *employeeService) GenerateEmployeeData(ctx context.Context, dataSetType 
 		)
 	}
 
-	setData, err := s.employeeRepository.PopulateEmployeeArrayData(ctx, setDataPath)
+	setData, err := s.employeeRepository.PopulateEmployeeArrayData(ctx, dataSetPath)
 	if err != nil {
 		return nil, err
 	}
