@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"log"
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
@@ -55,7 +54,7 @@ func (s *employeeService) GenerateRelationMap(ctx context.Context, employees []*
 	empWithNoManager := []*entities.Employee{}
 
 	isDuplicated, duplicatedData := utils.CheckDuplicateOnEmployeeSlice(employees)
-	log.Println(isDuplicated, "dup")
+	
 	if isDuplicated {
 		return nil, nil, apperror.NewError(
 			apperror.MultipleManagerEmployeeError(duplicatedData),
@@ -64,28 +63,28 @@ func (s *employeeService) GenerateRelationMap(ctx context.Context, employees []*
 		)
 	}
 
-	for _, e := range employees {
-		if e.ManagerId == 0 {
-			parent := e
-			empWithNoManager = append(empWithNoManager, e)
+	for _, emp := range employees {
+		if emp.ManagerId == 0 {
+			parent := emp
+			empWithNoManager = append(empWithNoManager, emp)
 			relations[parent] = append(relations[parent], nil)
 			continue
 		}
 
-		if e.Id == e.ManagerId{
+		if emp.Id == emp.ManagerId{
 			return nil, nil, apperror.NewError(
-				apperror.SelfManagerError(e.Name),
+				apperror.SelfManagerError(emp.Name),
 				constants.EmployeeServFile,
 				methodName,
 			)
 		}
 
-		manager, err := s.employeeRepository.FindEmployeeByIdOnArrayData(ctx, e.ManagerId, employees)
+		manager, err := s.employeeRepository.FindEmployeeByIdOnArrayData(ctx, emp.ManagerId, employees)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		child, parent := e, manager
+		child, parent := emp, manager
 		relations[parent] = append(relations[parent], child)
 	}
 
@@ -98,14 +97,14 @@ func (s *employeeService) GenerateRelationMap(ctx context.Context, employees []*
 	return executive, relations, nil
 }
 
-func (s *employeeService) FindExecutive(ctx context.Context, empWithNoManager []*entities.Employee, relations map[*entities.Employee][]*entities.Employee) (*entities.Employee, error) {
+func (s *employeeService) FindExecutive(ctx context.Context, empWithNoManagers []*entities.Employee, relations map[*entities.Employee][]*entities.Employee) (*entities.Employee, error) {
 	const methodName = "employeeService.FindExecutive"
 	var empWithNoHierarchy []string
 	var executive *entities.Employee
-	for _, d := range empWithNoManager {
-		_, ok := relations[d]
+	for _, empWithNoManager := range empWithNoManagers {
+		_, isEmpRelationExists := relations[empWithNoManager]
 
-		if ok && executive != nil {
+		if isEmpRelationExists && executive != nil {
 			return nil, apperror.NewError(
 				apperror.MaximumExecutiveError(),
 				constants.EmployeeServFile,
@@ -113,12 +112,11 @@ func (s *employeeService) FindExecutive(ctx context.Context, empWithNoManager []
 			)
 		}
 
-		if ok && executive == nil {
-			executive = d
+		if isEmpRelationExists && executive == nil {
+			executive = empWithNoManager
 		}
 
-		// Case : no executive exists
-		if !ok && len(empWithNoManager) == 1 {
+		if !isEmpRelationExists && len(empWithNoManagers) == 1 {
 			return nil, apperror.NewError(
 				apperror.NoExecutiveFoundError(),
 				constants.EmployeeServFile,
@@ -126,13 +124,11 @@ func (s *employeeService) FindExecutive(ctx context.Context, empWithNoManager []
 			)
 		}
 
-		// Case : employee does not have hierarchy
-		if !ok && len(empWithNoManager) > 1 {
-			empWithNoHierarchy = append(empWithNoHierarchy, d.Name)
+		if !isEmpRelationExists && len(empWithNoManagers) > 1 {
+			empWithNoHierarchy = append(empWithNoHierarchy, empWithNoManager.Name)
 		}
 	}
 
-	// Exit early. Case : employee with no hierarchy
 	if len(empWithNoHierarchy) > 0 {
 		return nil, apperror.NewError(
 			apperror.NoHierarchyEmployeeError(empWithNoHierarchy),
@@ -149,21 +145,21 @@ func (s *employeeService) BuildNode(ctx context.Context, parent *entities.Employ
 	var node = entities.EmployeeNode{}
 	node.Employee = parent
 
-	if _, ok := employeeRelations[parent]; !ok {
+	if _, isEmpRelationExists := employeeRelations[parent]; !isEmpRelationExists {
 		return nil
 	}
 
-	for _, c := range employeeRelations[parent] {
-		if c == nil {
+	for _, empRelation := range employeeRelations[parent] {
+		if empRelation == nil {
 			continue
 		}
 
 		var newNode = entities.EmployeeNode{
-			Employee: c,
+			Employee: empRelation,
 		}
 
-		if _, ok := employeeRelations[c]; ok {
-			childNode := s.BuildNode(ctx, c, employeeRelations)
+		if _, empRelationExists := employeeRelations[empRelation]; empRelationExists {
+			childNode := s.BuildNode(ctx, empRelation, employeeRelations)
 			if childNode != nil {
 				node.DirectReports = append(node.DirectReports, childNode)
 			}
@@ -244,8 +240,8 @@ func (s *employeeService) SearchForManagers(ctx context.Context, node *entities.
 		listManagers = append(listManagers, node.Employee.Name)
 
 		if len(node.DirectReports) > 0 {
-			for _, c := range node.DirectReports {
-				list := s.SearchForManagers(ctx, c, listManagers, empToFind)
+			for _, directReport := range node.DirectReports {
+				list := s.SearchForManagers(ctx, directReport, listManagers, empToFind)
 				if list != nil {
 					return list
 				}
@@ -262,8 +258,8 @@ func (s *employeeService) findEmployeeByNameOnTree(ctx context.Context, empName 
 		}
 
 		if len(node.DirectReports) > 0 {
-			for _, c := range node.DirectReports {
-				empFound := s.findEmployeeByNameOnTree(ctx, empName, c)
+			for _, directReport := range node.DirectReports {
+				empFound := s.findEmployeeByNameOnTree(ctx, empName, directReport)
 				if empFound != nil {
 					return empFound
 				}
@@ -276,9 +272,9 @@ func (s *employeeService) findEmployeeByNameOnTree(ctx context.Context, empName 
 func (s *employeeService) CountIndirectReports(ctx context.Context, parentNode *entities.EmployeeNode, count int) int {
 	if parentNode != nil {
 		if len(parentNode.DirectReports) > 0 {
-			for _, c := range parentNode.DirectReports {
-				count += len(c.DirectReports)
-				s.CountIndirectReports(ctx, c, count)
+			for _, directReport := range parentNode.DirectReports {
+				count += len(directReport.DirectReports)
+				s.CountIndirectReports(ctx, directReport, count)
 			}
 		}
 	}

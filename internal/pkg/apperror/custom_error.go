@@ -138,6 +138,15 @@ func RetrieveDataError(dataName string) *CustomError {
 	}
 }
 
+func RequriedFieldError(fieldName []string) *CustomError {
+	return &CustomError{
+		Code:    http.StatusInternalServerError,
+		Name:    "ErrRequiredField",
+		Message: "please input the required data",
+		Details: fieldName,
+	}
+}
+
 func ErrPageNotFoundError() *CustomError {
 	return &CustomError{
 		Code:    http.StatusNotFound,

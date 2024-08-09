@@ -23,7 +23,7 @@ func Routers(h *HandlerOpts) http.Handler {
 
 	g.Use(middlewares.LoggerMiddleware(), gin.Recovery(), middlewares.ErrorMiddleware())
 
-	g.POST("/search-employee", h.EmployeeHandler.GetEmployee)
+	g.GET("/search-employee", h.EmployeeHandler.GetEmployee)
 
 	return g
 }
