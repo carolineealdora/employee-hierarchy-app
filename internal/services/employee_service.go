@@ -44,6 +44,14 @@ func (s *employeeService) GenerateEmployeeData(ctx context.Context, dataSetType 
 	if err != nil {
 		return nil, err
 	}
+
+	if len(setData) == 0 {
+		return nil, apperror.NewError(
+			apperror.EmptyDataSetError(),
+			constants.EmployeeRepoFile,
+			methodName,
+		)
+	}
 	
 	return setData, nil
 }
@@ -129,12 +137,10 @@ func (s *employeeService) FindExecutive(ctx context.Context, empWithNoManagers [
 		}
 	}
 
-	if len(empWithNoHierarchy) > 0 {
-		return nil, apperror.NewError(
-			apperror.NoHierarchyEmployeeError(empWithNoHierarchy),
-			constants.EmployeeServFile,
-			methodName,
-		)
+	err := s.EnsureEmployeeHaveHierarchy(empWithNoHierarchy)
+
+	if err != nil {
+		return nil, err
 	}
 
 	return executive, nil
@@ -290,14 +296,6 @@ func (s *employeeService) GetEmployeeByName(ctx context.Context, reqData dtos.Se
 		return nil, err
 	}
 
-	if len(dataSet) == 0 {
-		return nil, apperror.NewError(
-			apperror.EmptyDataSetError(),
-			constants.EmployeeRepoFile,
-			methodName,
-		)
-	}
-
 	empTree, err := s.GenerateTree(ctx, dataSet)
 
 	if err != nil {
@@ -326,4 +324,18 @@ func (s *employeeService) CheckForLoopInRelation(relations map[*entities.Employe
 	}
 
 	return false
+}
+
+func (s *employeeService) EnsureEmployeeHaveHierarchy(empWithNoHierarchy []string) error {
+	const methodName = "employeeService.EnsureEmployeeHaveHierarchy"
+
+	if len(empWithNoHierarchy) > 0 {
+		return apperror.NewError(
+			apperror.NoHierarchyEmployeeError(empWithNoHierarchy),
+			constants.EmployeeServFile,
+			methodName,
+		)
+	}
+
+	return nil
 }

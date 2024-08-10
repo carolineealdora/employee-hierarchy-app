@@ -6,7 +6,6 @@ import (
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
-	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/utils"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/services"
 	"github.com/gin-gonic/gin"
@@ -26,21 +25,10 @@ func (h *EmployeeHandler) GetEmployee(c *gin.Context) {
 	const methodName = "employeeHandler.GetEmployee"
 	var reqData dtos.SearchEmployeeReq
 	
-	if c.Query("name") == "" || c.Query("data_set_type") == "" {
-		var requiredField []string
-		if c.Query("name") == "" {
-			requiredField = append(requiredField, "name")
-		}
+	err := utils.ValidateSearchForEmpQueryParams(c)
 
-		if c.Query("data_set_type") == "" {
-			requiredField = append(requiredField, "data_set_type")
-		}
-
-		apperror.NewError(
-			apperror.RequriedFieldError(requiredField),
-			constants.EmployeeServFile,
-			methodName,
-		)
+	if err != nil {
+		c.Error(err)
 		return
 	}
 
