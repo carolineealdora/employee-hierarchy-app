@@ -3,7 +3,7 @@ package constants
 const (
 	EmployeeRepoFile = "employee_repository.go"
 	EmployeeServFile = "employee_service.go"
-	SetupRoutersFile   = "setup_routers.go"
+	SetupRoutersFile = "setup_routers.go"
 )
 
 const (
@@ -14,6 +14,6 @@ const (
 	ResponseMsgErrorInternalServer = "our server encounter error. please try again"
 
 	ResponseMsgDataRetrieved = "successfully retrieved data"
-	ResponseMsgDataCreated = "successfully created data"
-	ResponseMsgDataUpdated = "sucessfully updated data"
+	ResponseMsgDataCreated   = "successfully created data"
+	ResponseMsgDataUpdated   = "sucessfully updated data"
 )

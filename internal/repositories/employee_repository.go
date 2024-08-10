@@ -54,9 +54,9 @@ func (r *employeeRepository) PopulateEmployeeArrayData(ctx context.Context, file
 func (r *employeeRepository) FindEmployeeByIdOnArrayData(ctx context.Context, id int, employees []*entities.Employee) (*entities.Employee, error) {
 	const methodName = "employeeRepository.FindEmployeeByIdOnArrayData"
 
-	for _, d := range employees {
-		if id == d.Id {
-			return d, nil
+	for _, emp := range employees {
+		if id == emp.Id {
+			return emp, nil
 		}
 	}
 	return nil, apperror.NewError(
