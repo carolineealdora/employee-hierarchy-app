@@ -41,6 +41,7 @@ func (s *employeeService) GenerateEmployeeData(ctx context.Context, dataSetType 
 	}
 
 	setData, err := s.employeeRepository.PopulateEmployeeArrayData(ctx, dataSetPath)
+	
 	if err != nil {
 		return nil, err
 	}

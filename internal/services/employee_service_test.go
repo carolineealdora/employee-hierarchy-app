@@ -24,7 +24,6 @@ func TestNewEmployeeService(t *testing.T) {
 
 func TestGenerateEmployeeData(t *testing.T) {
 	mockRepo := mocks.NewEmployeeRepository(t)
-	mockServ := mocks.EmployeeService(*mockRepo)
 	dep := NewEmployeeService(mockRepo)
 
 	w := httptest.NewRecorder()
@@ -60,7 +59,7 @@ func TestGenerateEmployeeData(t *testing.T) {
 		assert.Equal(t, expectedResString, w.Body.String())
 	})
 
-	t.Run("should return error internal server when failed on populate array data of employee", func(t *testing.T) {
+	t.Run("should return error when failed on populating array data of employee", func(t *testing.T) {
 		req := dtos.SearchEmployeeReq{
 			EmployeeName: "kacie",
 			DataSetType:  1,
@@ -75,18 +74,21 @@ func TestGenerateEmployeeData(t *testing.T) {
 		)
 		expResObj := errors.New(resObj.Error())
 		falseDataPath := "./??"
+		expDataSetEmp := map[int]string{
+			1: falseDataPath,
+		}
 
 		gin.SetMode(gin.TestMode)
 		r := httptest.NewRequest(http.MethodPost, "/search-employee", strings.NewReader(string(reqJson)))
 		c.Request = r
 
-		mockRepo.On("GetDataSetEmployee", c).Return(falseDataPath, nil)
-		mockServ.On("PopulateEmployeeArrayData", c, falseDataPath).Return(nil, expResObj)
+		mockRepo.On("GetDataSetEmployee", c).Return(expDataSetEmp, nil)
+		mockRepo.On("PopulateEmployeeArrayData", c, falseDataPath).Return(nil, expResObj)
 		dep.GenerateEmployeeData(c, req.DataSetType)
 
-		mockRepo.AssertExpectations(t)
-		mockServ.AssertExpectations(t)
-		assert.Equal(t, http.StatusInternalServerError, w.Result().StatusCode)
+		mockRepo.AssertNumberOfCalls(t, "GetDataSetEmployee", 1)
+		mockRepo.AssertNumberOfCalls(t, "PopulateEmployeeArrayData", 1)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
 	})
 }
 
