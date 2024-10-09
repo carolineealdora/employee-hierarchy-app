@@ -1,17 +1,21 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/carolineealdora/employee-hierarchy-app/internal/constants"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/dtos"
+	"github.com/carolineealdora/employee-hierarchy-app/internal/entities"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/apperror"
 	"github.com/carolineealdora/employee-hierarchy-app/internal/pkg/utils"
+	"github.com/carolineealdora/employee-hierarchy-app/internal/repositories"
 	"github.com/carolineealdora/employee-hierarchy-app/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -127,4 +131,38 @@ func TestGetEmployeeByName(t *testing.T) {
 		mockRepo.AssertExpectations(t)
 		assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 	})
+}
+
+func Test_employeeService_GenerateEmployeeData(t *testing.T) {
+	type fields struct {
+		employeeRepository repositories.EmployeeRepository
+	}
+	type args struct {
+		ctx         context.Context
+		dataSetType int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []*entities.Employee
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &employeeService{
+				employeeRepository: tt.fields.employeeRepository,
+			}
+			got, err := s.GenerateEmployeeData(tt.args.ctx, tt.args.dataSetType)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("employeeService.GenerateEmployeeData() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("employeeService.GenerateEmployeeData() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
